@@ -1,97 +1,59 @@
-song = "";
-function preload()
-{
-   song = loadSound("music.mp3");
+img = "";
+status = "";
+objects = [];
+
+function preload() {
+    img = loadImage('dog_cat.jpg');    
 }
 
-leftWristX = 0;
-leftWristY = 0;
-rightWristX = 0;
-rightWristY = 0;
-
-scoreRightWrist = 0;
-scoreLeftWrist = 0;
 function setup() {
-    canvas = createCanvas(600, 500);
+    canvas = createCanvas(380, 380);
     canvas.center();
+    video = createCapture(VIDEO);
+    video.size(380,380)
+    video.hide();
+}
 
-     video = createCapture(VIDEO);
-     video.hide();
-
-     poseNet = ml5.poseNet(video, modelLoaded);
-     poseNet.on('pose', gotPoses);
+function start() {
+    objectDetector = ml5.objectDetector('cocossd', modelLoaded);
+    document.getElementById("status").innerHTML = "Status : Detecting Objects";
 }
 
 function modelLoaded() {
-    console.log('PoseNet Is initialized');
+    console.log("Model Loaded!");
+    status = true;
+    objectDetector.detect(video, gotResult);
+}
+
+function gotResult(error, results) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+    objects = results;
 }
 
 function draw() {
-    image(video, 0, 0, 600, 500);
+    image(video,0 ,0 ,380 , 380);
 
-    fill("#FF0000");
-    stroke("FF0000");
-    if(scoreRightWrist > 0.2)
+    if(status !="")
     {
-    circle(rightWristX,rrightWristY,20);
+        r = random(255);
+        g = random(255);
+        b = random(255);
+        
+        objectDetector.detect(video,gotResult);
+        for (i = 0; i < objects.length; i++){
+            document.getElementById("status").innerHTML = "Status : Object Detected";
+            document.getElementById("number_of_objects").innerHTML = "Number of objects detected are:" + objects.length;
 
-    if(rightWristY >0 && rightWristY <= 100)
-    {
-        document.getElementById("speed").innerHTML = "Speed = 0.5x";
-        song.rate(0.5);
+            fill(r,g,b);
+            percent = floor(objects[i].confidence *100);
+            text(objects[i].label + " " + percnt + "%", objects[i].x + 15, objects[i].y + 15);
+            noFill();
+            stroke(r,g,b);
+            rect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
+        }
     }
-    else if(rightWristY >100 && rightwristY <= 200)
-    {
-        document.getElementById("speed").innerHTML = "Speed = 1x";
-        song.rate(1);
-    }
-    else if(rightWristY >200 && rightwristY <= 300)
-    {
-        document.getElementById("speed").innerHTML = "Speed = 1.5x";
-        song.rate(1.5);
-    }
-    else if(rightWristY >300 && rightwristY <= 400)
-    {
-        document.getElementById("speed").innerHTML = "Speed = 2x";
-        song.rate(2);
-    }
-    else if(rightWristY >400 && rightwristY <= 500)
-    {
-        document.getElementById("speed").innerHTML = "Speed = 2.5x";
-        song.rate(2.5);
-    }
-}
-if(scoreLeftWrist > 0.2)
-{
-    circle(leftwristX,leftwristY,20);
-    InNumberleftWrist = Number(leftWristY);
-    remove_dicimals = floor(InNumberleftWristY);
-    volume = remove_decimals/500;
-    document.getElementById("volume").inerHTML = "Volume = " + volume;
-    song.setVolume(volume);
-}
-}
 
-function play()
-{
-song.play();
-song.setVolume(1);
-song.rate(1);
-}
-
-function gotPoses(results)
-{
-    if(results.length > 0)
-    {
-        console.log(results);
-        scoreRightWrist = results[0].pose.keypoints[10].score;
-        scoreLeftWrist = results[0].pose.keypoints[9].score;
-        console.log("scoreLeftWrist = " + scoreRightWrist + "scoreLeftWrist = " + scoreLeftWrist);
-        leftWristX = results[0].pose.leftWrist.x;
-        leftWristY = results[0].pose.rightWrist.y;
-        console.log("leftWristX = " + leftWristX + "leftWristY"+ leftWristY);
-        rightWristX = results[0].pose.rightWrist.x;
-        rightWristY = results[0].pose.leftWrist.y;
-        console.log("rightWristX = " + rightWristX + "rightWristY"+ rightWristY);
-    }
 }
